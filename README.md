@@ -1,3 +1,9 @@
+##用前需读：下载压缩包解压后双击integral_gui.exe即可运行
+同时推广自己的公众号：格致谈思录，欢迎来看我胡思乱想~
+
+
+
+
 # 定积分计算器 (Numerical Integral Calculator)
 
 一个基于 C++17 的数值定积分计算工具，提供 **命令行 (CLI)** 和 **Windows 图形界面 (GUI)** 两种交互方式。
