@@ -1,6 +1,62 @@
 ##用前需读：下载压缩包解压后双击integral_gui.exe即可运行
 同时推广自己的公众号：格致谈思录，欢迎来看我胡思乱想~
+若无法运行，请使用本链接里的版本，或前往公众号留言
+链接：
+链接：我用夸克网盘给你分享了「定积分工具（v1.1，修复了依赖gcc的问题）.zip」，点击链接或复制整段内容，打开「夸克APP」即可获取。
+/~b9c23YIZ0o~:/
+链接：https://pan.quark.cn/s/42e78f5717b9
 
+##2026.4.25 v1.1更新（不依赖gcc版）
+链接：我用夸克网盘给你分享了「定积分工具（v1.1，修复了依赖gcc的问题）.zip」，点击链接或复制整段内容，打开「夸克APP」即可获取。
+/~b9c23YIZ0o~:/
+链接：https://pan.quark.cn/s/42e78f5717b9
+##更新说明：解决了电脑没有安装gcc跑不了的问题
+感谢贡献：HN姐
+
+以下为本次更新的详细说明
+分发时缺少 MinGW 运行时 DLL
+
+**现象**：将编译好的 `.exe` 打包发给没有安装 MinGW 的用户时，运行提示找不到 `libgcc_s_seh-1.dll`。
+
+**原因**：MinGW GCC 默认动态链接以下运行时库：
+
+| DLL | 作用 |
+|-----|------|
+| `libgcc_s_seh-1.dll` | GCC 异常处理（SEH 模型） |
+| `libstdc++-6.dll` | C++ 标准库（std::string、std::vector 等） |
+
+编译时没有指定静态链接，链接器默认生成对这两个 DLL 的引用。开发机上因为安装了 MinGW，这些 DLL 存在于 `PATH` 中可以正常加载；但目标用户机器上没有 MinGW，系统找不到这些 DLL，启动即失败。
+
+**解决**：在链接器标志中添加 `-static-libgcc -static-libstdc++`，将 GCC 运行时和 C++ 标准库静态链接进可执行文件。
+
+修改内容：
+
+**Makefile**（第 25、29 行）：
+```makefile
+# 修改前
+$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+$(CXX) $(CXXFLAGS) -o $@ $^ $(GUI_LIBS)
+
+# 修改后
+$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -static-libgcc -static-libstdc++
+$(CXX) $(CXXFLAGS) -o $@ $^ $(GUI_LIBS) -static-libgcc -static-libstdc++
+```
+
+**CMakeLists.txt**（末尾）：
+```cmake
+if(MINGW)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+endif()
+```
+
+**验证**：重新编译后用 `objdump -p` 检查 DLL 依赖，`libgcc_s_seh-1.dll` 和 `libstdc++-6.dll` 已从依赖列表中消失，仅剩下 Windows 系统自带 DLL（`KERNEL32.dll`、`USER32.dll` 等）和 Universal C Runtime（Windows 10/11 内置）。
+
+**注意事项**：
+- 静态链接后 exe 体积增大约 200–300 KB（原本 ~16.3 MB），增幅可忽略
+- 如果目标用户还在使用 Windows 7，可能需要安装 "Visual C++ Redistributable 2015-2022" 以提供 UCRT 运行时；Windows 10/11 用户无需任何额外操作
+- 如需完全静态链接（连 UCRT 也嵌入），可改用 `-static` 标志，但会使体积增至 ~50 MB，收益不大
+
+---
 
 
 
